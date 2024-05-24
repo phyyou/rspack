@@ -14,6 +14,7 @@ use super::storage::ArcStorage;
 
 const SCOPE: &'static str = "snapshot";
 
+#[derive(Debug)]
 pub struct Snapshot {
   storage: ArcStorage,
   option: SnapshotOption,

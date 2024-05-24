@@ -1,5 +1,6 @@
 use rspack_regex::RspackRegex;
 
+#[derive(Debug)]
 pub enum PathMatcher {
   String(String),
   Regexp(RspackRegex),
@@ -14,6 +15,7 @@ impl PathMatcher {
   }
 }
 
+#[derive(Debug)]
 pub struct SnapshotOption {
   immutable_paths: Vec<PathMatcher>,
   unmanaged_paths: Vec<PathMatcher>,

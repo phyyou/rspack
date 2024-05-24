@@ -16,7 +16,8 @@ use tracing::instrument;
 
 pub use self::compilation::*;
 pub use self::hmr::{collect_changed_modules, CompilationRecords};
-pub use self::module_executor::{ExecuteModuleId, ExecutedRuntimeModule, ModuleExecutor};
+pub use self::module_executor::{ExecuteModuleId, ModuleExecutor};
+use crate::cache::{Cache, SnapshotOption};
 use crate::old_cache::Cache as OldCache;
 use crate::{
   fast_set, BoxPlugin, CompilerOptions, Logger, PluginDriver, ResolverFactory, SharedPluginDriver,
@@ -60,6 +61,7 @@ where
   pub resolver_factory: Arc<ResolverFactory>,
   pub loader_resolver_factory: Arc<ResolverFactory>,
   pub old_cache: Arc<OldCache>,
+  pub cache: Arc<Cache>,
   /// emitted asset versions
   /// the key of HashMap is filename, the value of HashMap is version
   pub emitted_asset_versions: HashMap<String, String>,
@@ -100,6 +102,7 @@ where
       resolver_factory,
       loader_resolver_factory,
       old_cache,
+      cache: Arc::new(Cache::new(SnapshotOption::new(vec![], vec![], vec![]))),
       emitted_asset_versions: Default::default(),
     }
   }

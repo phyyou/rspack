@@ -5,6 +5,8 @@ pub struct MakeOccasion {
   storage: ArcStorage,
 }
 
-impl MakeOccasion {}
-
-// rkyv
+impl MakeOccasion {
+  pub fn new(storage: ArcStorage) -> Self {
+    Self { storage }
+  }
+}

@@ -4,14 +4,15 @@ mod storage;
 
 use std::sync::Arc;
 
+pub use self::snapshot::SnapshotOption;
 use self::{
-  snapshot::{Snapshot, SnapshotOption},
+  snapshot::Snapshot,
   storage::{ArcStorage, FsStorage},
 };
 
-// call write storage only build success
+// TODO call write storage only build success
+#[derive(Debug)]
 pub struct Cache {
-  storage: ArcStorage,
   snapshot: Snapshot,
 }
 
@@ -20,8 +21,7 @@ impl Cache {
   pub fn new(snapshot_option: SnapshotOption) -> Self {
     let storage = Arc::new(FsStorage {});
     Self {
-      snapshot: Snapshot::new(storage.clone(), snapshot_option),
-      storage,
+      snapshot: Snapshot::new(storage, snapshot_option),
     }
   }
 }
