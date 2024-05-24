@@ -1,40 +1,74 @@
-use std::{fs, path::Path, time::UNIX_EPOCH};
+use std::{fs, path::PathBuf, time::UNIX_EPOCH};
 
 use rkyv::{Archive, Deserialize, Serialize};
+use rustc_hash::FxHashMap as HashMap;
 
 #[derive(Archive, Deserialize, Serialize, Debug, PartialEq)]
 #[archive(check_bytes)]
 pub enum Strategy {
   LibVersion(String),
-  UpdateTime(),
+  CompileTime(u64),
 }
 
-impl Strategy {
-  pub fn lib_version<P: AsRef<Path>>(path: P) -> Option<Self> {
-    // TODO add cache if performance is poor
-    // TODO define StrategyGenerator
-    package_json_version(path.as_ref()).map(|version| Self::LibVersion(version))
+pub enum ValidateResult {
+  Deleted,
+  Modified,
+  NoChange,
+}
+
+#[derive(Default)]
+pub struct StrategyHelper {
+  lib_version_cache: HashMap<PathBuf, Option<String>>,
+}
+
+impl StrategyHelper {
+  pub fn lib_version(&mut self, path: &PathBuf) -> Option<String> {
+    if let Some(version) = self.lib_version_cache.get(path) {
+      return version.clone();
+    }
+
+    // 1. try get package.json version in current path
+    let res = package_json_version(path).or_else(|| {
+      // 2. try get lib version in parent path
+      // 3. if parent path is none, return none
+      path
+        .parent()
+        .and_then(|parent| self.lib_version(&parent.to_path_buf()))
+    });
+    self.lib_version_cache.insert(path.clone(), res.clone());
+    res
   }
 
-  pub fn check<P: AsRef<Path>>(&self, path: P, time: u64) -> Option<bool> {
-    match self {
-      Self::LibVersion(version) => {
-        let Some(cur_version) = package_json_version(path.as_ref()) else {
-          return None;
-        };
-        Some(version == &cur_version)
+  // deleted / modified / keep / error
+  pub fn validate(&mut self, path: &PathBuf, strategy: &Strategy) -> ValidateResult {
+    match strategy {
+      Strategy::LibVersion(version) => {
+        if let Some(ref cur_version) = self.lib_version(path) {
+          if cur_version == version {
+            ValidateResult::NoChange
+          } else {
+            ValidateResult::Modified
+          }
+        } else {
+          ValidateResult::Deleted
+        }
       }
-      Self::UpdateTime() => {
-        let Some(file_time) = modified_time(path.as_ref()) else {
-          return None;
-        };
-        Some(file_time < time)
+      Strategy::CompileTime(compile_time) => {
+        if let Some(ref modified_time) = modified_time(path) {
+          if modified_time > compile_time {
+            ValidateResult::Modified
+          } else {
+            ValidateResult::NoChange
+          }
+        } else {
+          ValidateResult::Deleted
+        }
       }
     }
   }
 }
 
-fn modified_time(path: &Path) -> Option<u64> {
+fn modified_time(path: &PathBuf) -> Option<u64> {
   if let Ok(info) = fs::metadata(path) {
     if let Ok(time) = info.modified() {
       if let Ok(s) = time.duration_since(UNIX_EPOCH) {
@@ -45,21 +79,15 @@ fn modified_time(path: &Path) -> Option<u64> {
   None
 }
 
-fn package_json_version(path: &Path) -> Option<String> {
-  let mut cache_value = Some(path);
-  while let Some(cv) = cache_value {
-    if let Ok(content) = fs::read(cv.join("package.json")) {
-      if let Ok(package_json) =
-        serde_json::from_slice::<serde_json::Map<String, serde_json::Value>>(&content)
-      {
-        if let Some(serde_json::Value::String(version)) = package_json.get("version") {
-          return Some(version.clone());
-        }
+fn package_json_version(path: &PathBuf) -> Option<String> {
+  if let Ok(content) = fs::read(path.join("package.json")) {
+    if let Ok(package_json) =
+      serde_json::from_slice::<serde_json::Map<String, serde_json::Value>>(&content)
+    {
+      if let Some(serde_json::Value::String(version)) = package_json.get("version") {
+        return Some(version.clone());
       }
-      return None;
     }
-    cache_value = cv.parent();
   }
-
   None
 }
