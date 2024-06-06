@@ -221,6 +221,14 @@ impl Task<MakeTaskContext> for FactorizeResultTask {
         .map(|d| d.with_module_identifier(original_module_identifier)),
     );
 
+    artifact.update_added_dependencies(
+      file_dependencies
+        .iter()
+        .chain(context_dependencies.iter())
+        .chain(missing_dependencies.iter())
+        .collect(),
+    );
+
     artifact
       .file_dependencies
       .add_batch_file(&file_dependencies);
@@ -230,6 +238,7 @@ impl Task<MakeTaskContext> for FactorizeResultTask {
     artifact
       .missing_dependencies
       .add_batch_file(&missing_dependencies);
+
     let module_graph =
       &mut MakeTaskContext::get_module_graph_mut(&mut artifact.module_graph_partial);
     let Some(factory_result) = factory_result else {

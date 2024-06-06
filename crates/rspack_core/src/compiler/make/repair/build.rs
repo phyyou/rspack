@@ -110,8 +110,6 @@ impl Task<MakeTaskContext> for BuildResultTask {
     } = *self;
 
     let artifact = &mut context.artifact;
-    let module_graph =
-      &mut MakeTaskContext::get_module_graph_mut(&mut artifact.module_graph_partial);
 
     if !diagnostics.is_empty() {
       artifact.make_failed_module.insert(module.identifier());
@@ -119,9 +117,23 @@ impl Task<MakeTaskContext> for BuildResultTask {
 
     tracing::trace!("Module built: {}", module.identifier());
     artifact.diagnostics.extend(diagnostics);
+    artifact.update_added_dependencies(
+      build_result
+        .build_info
+        .file_dependencies
+        .iter()
+        .chain(build_result.build_info.context_dependencies.iter())
+        .chain(build_result.build_info.missing_dependencies.iter())
+        .chain(build_result.build_info.build_dependencies.iter())
+        .collect(),
+    );
+
+    let module_graph =
+      &mut MakeTaskContext::get_module_graph_mut(&mut artifact.module_graph_partial);
     module_graph
       .get_optimization_bailout_mut(&module.identifier())
       .extend(build_result.optimization_bailouts);
+
     artifact
       .file_dependencies
       .add_batch_file(&build_result.build_info.file_dependencies);

@@ -51,6 +51,11 @@ impl FileCounter {
     }
   }
 
+  /// Returns `true` if the pathbuf usage count is non-zero
+  pub fn contain(&self, path: &PathBuf) -> bool {
+    self.inner.contains_key(path)
+  }
+
   /// Get files with count more than 0
   pub fn files(&self) -> impl Iterator<Item = &PathBuf> {
     self.inner.keys()

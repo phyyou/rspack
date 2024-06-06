@@ -19,6 +19,8 @@ pub struct MakeArtifact {
   // should be reset when rebuild
   pub diagnostics: Vec<Diagnostic>,
   pub has_module_graph_change: bool,
+  removed_dependencies: HashSet<PathBuf>,
+  added_dependencies: HashSet<PathBuf>,
 
   // data
   pub built_modules: IdentifierSet,
@@ -76,10 +78,44 @@ impl MakeArtifact {
         self
           .build_dependencies
           .remove_batch_file(&build_info.build_dependencies);
+
+        // add build_info.*_dependencies to remove_dependencies
+        build_info
+          .file_dependencies
+          .iter()
+          .chain(build_info.context_dependencies.iter())
+          .chain(build_info.missing_dependencies.iter())
+          .chain(build_info.build_dependencies.iter())
+          .for_each(|path| {
+            if !self.file_dependencies.contain(path)
+              && !self.context_dependencies.contain(path)
+              && !self.missing_dependencies.contain(path)
+              && !self.build_dependencies.contain(path)
+            {
+              self.removed_dependencies.insert(path.clone());
+            }
+          })
       }
       res.extend(module_graph.revoke_module(module_identifier));
     }
+
     res
+  }
+
+  fn update_added_dependencies(&mut self, paths: HashSet<&PathBuf>) {
+    for path in paths {
+      if self.file_dependencies.contain(path)
+        || self.context_dependencies.contain(path)
+        || self.missing_dependencies.contain(path)
+        || self.build_dependencies.contain(path)
+      {
+        continue;
+      }
+      if self.removed_dependencies.remove(path) {
+        continue;
+      }
+      self.added_dependencies.insert(path.clone());
+    }
   }
 }
 
@@ -131,6 +167,8 @@ pub fn make_module_graph(
   artifact.built_modules = Default::default();
   artifact.diagnostics = Default::default();
   artifact.has_module_graph_change = false;
+  artifact.removed_dependencies = Default::default();
+  artifact.added_dependencies = Default::default();
 
   artifact = update_module_graph(compilation, artifact, params)?;
   Ok(artifact)
