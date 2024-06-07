@@ -83,6 +83,7 @@ where
     let loader_resolver_factory = Arc::new(ResolverFactory::new(options.resolve_loader.clone()));
     let (plugin_driver, options) = PluginDriver::new(options, plugins, resolver_factory.clone());
     let old_cache = Arc::new(OldCache::new(options.clone()));
+    let cache = Arc::new(Cache::new(Default::default()));
     let module_executor = ModuleExecutor::default();
     Self {
       options: options.clone(),
@@ -93,6 +94,7 @@ where
         loader_resolver_factory.clone(),
         None,
         old_cache.clone(),
+        cache.clone(),
         Some(module_executor),
         Default::default(),
         Default::default(),
@@ -102,7 +104,7 @@ where
       resolver_factory,
       loader_resolver_factory,
       old_cache,
-      cache: Arc::new(Cache::new(SnapshotOption::new(vec![], vec![], vec![]))),
+      cache,
       emitted_asset_versions: Default::default(),
     }
   }
@@ -118,7 +120,6 @@ where
     // TODO: clear the outdated cache entries in resolver,
     // TODO: maybe it's better to use external entries.
     self.plugin_driver.resolver_factory.clear_cache();
-
     let module_executor = ModuleExecutor::default();
     fast_set(
       &mut self.compilation,
@@ -129,6 +130,7 @@ where
         self.loader_resolver_factory.clone(),
         None,
         self.old_cache.clone(),
+        self.cache.clone(),
         Some(module_executor),
         Default::default(),
         Default::default(),
@@ -137,6 +139,7 @@ where
 
     self.compile().await?;
     self.old_cache.begin_idle();
+    self.cache.idle();
     self.compile_done().await?;
     Ok(())
   }

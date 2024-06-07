@@ -7,6 +7,7 @@ use std::{
 };
 
 use rkyv::Deserialize;
+use rustc_hash::FxHashSet as HashSet;
 
 pub use self::option::{PathMatcher, SnapshotOption};
 use self::strategy::{Strategy, StrategyHelper, ValidateResult};
@@ -25,7 +26,7 @@ impl Snapshot {
     Self { storage, option }
   }
 
-  pub fn add(&mut self, files: Vec<PathBuf>) {
+  pub fn add(&self, files: &HashSet<PathBuf>) {
     let compiler_time = SystemTime::now()
       .duration_since(UNIX_EPOCH)
       .unwrap()
@@ -53,7 +54,7 @@ impl Snapshot {
     }
   }
 
-  pub fn remove(&mut self, files: Vec<PathBuf>) {
+  pub fn remove(&self, files: &HashSet<PathBuf>) {
     for item in files {
       self
         .storage

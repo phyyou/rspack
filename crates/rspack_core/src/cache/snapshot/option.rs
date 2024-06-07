@@ -15,7 +15,7 @@ impl PathMatcher {
   }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct SnapshotOption {
   immutable_paths: Vec<PathMatcher>,
   unmanaged_paths: Vec<PathMatcher>,

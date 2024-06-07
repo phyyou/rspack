@@ -19,8 +19,8 @@ pub struct MakeArtifact {
   // should be reset when rebuild
   pub diagnostics: Vec<Diagnostic>,
   pub has_module_graph_change: bool,
-  removed_dependencies: HashSet<PathBuf>,
-  added_dependencies: HashSet<PathBuf>,
+  pub removed_dependencies: HashSet<PathBuf>,
+  pub added_dependencies: HashSet<PathBuf>,
 
   // data
   pub built_modules: IdentifierSet,
