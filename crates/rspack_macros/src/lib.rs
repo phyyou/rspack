@@ -1,5 +1,7 @@
 #![feature(try_find)]
 
+mod cacheable;
+mod cacheable_dyn;
 mod hook;
 mod merge;
 mod plugin;
@@ -60,4 +62,12 @@ pub fn merge_from_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStr
     syn::Result::Err(err) => err.to_compile_error(),
   }
   .into()
+}
+
+#[proc_macro_attribute]
+pub fn cacheable(
+  args: proc_macro::TokenStream,
+  tokens: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
+  cacheable::impl_cacheable(args, tokens)
 }

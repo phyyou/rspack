@@ -6,7 +6,6 @@ use std::{
   time::{SystemTime, UNIX_EPOCH},
 };
 
-use rkyv::Deserialize;
 use rustc_hash::FxHashSet as HashSet;
 
 pub use self::option::{PathMatcher, SnapshotOption};
@@ -39,18 +38,19 @@ impl Snapshot {
       }
       if self.option.is_managed_path(path_str) {
         if let Some(s) = helper.lib_version(&path) {
-          let data = rkyv::to_bytes::<_, 1024>(&s).expect("should to bytes success");
-          self
-            .storage
-            .set(SCOPE, path_str.as_bytes().to_vec(), data.into_vec());
+          self.storage.set(
+            SCOPE,
+            path_str.as_bytes().to_vec(),
+            rspack_cache::to_bytes(&Strategy::LibVersion(s)),
+          );
         }
       }
       // compiler time
-      let data = rkyv::to_bytes::<_, 1024>(&Strategy::CompileTime(compiler_time))
-        .expect("should to bytes success");
-      self
-        .storage
-        .set(SCOPE, path_str.as_bytes().to_vec(), data.into_vec());
+      self.storage.set(
+        SCOPE,
+        path_str.as_bytes().to_vec(),
+        rspack_cache::to_bytes(&Strategy::CompileTime(compiler_time)),
+      );
     }
   }
 
@@ -69,8 +69,7 @@ impl Snapshot {
 
     for (key, value) in self.storage.get_all(SCOPE) {
       let path = PathBuf::from(String::from_utf8(key).unwrap());
-      let temp = rkyv::check_archived_root::<Strategy>(&value).unwrap();
-      let strategy: Strategy = temp.deserialize(&mut rkyv::Infallible).unwrap();
+      let strategy: Strategy = rspack_cache::from_bytes::<Strategy>(&value);
       match helper.validate(&path, &strategy) {
         ValidateResult::Modified => {
           modified_files.push(path);

@@ -3107,6 +3107,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "rspack_cache"
+version = "0.1.0"
+dependencies = [
+ "rkyv",
+ "rspack_macros",
+]
+
+[[package]]
 name = "rspack_core"
 version = "0.1.0"
 dependencies = [
@@ -3133,8 +3141,8 @@ dependencies = [
  "pretty_assertions",
  "rayon",
  "regex",
- "rkyv",
  "rspack_ast",
+ "rspack_cache",
  "rspack_database",
  "rspack_error",
  "rspack_fs",
