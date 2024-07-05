@@ -71,3 +71,11 @@ pub fn cacheable(
 ) -> proc_macro::TokenStream {
   cacheable::impl_cacheable(args, tokens)
 }
+
+#[proc_macro_attribute]
+pub fn cacheable_dyn(
+  args: proc_macro::TokenStream,
+  tokens: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
+  cacheable_dyn::impl_cacheable_dyn(args, tokens)
+}

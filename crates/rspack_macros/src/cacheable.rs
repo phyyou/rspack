@@ -12,7 +12,11 @@ pub fn impl_cacheable(_args: TokenStream, tokens: TokenStream) -> TokenStream {
   };
 
   quote! {
-      #[derive(rspack_cache::__private::rkyv::Archive, rspack_cache::__private::rkyv::Deserialize, rspack_cache::__private::rkyv::Serialize)]
+      #[derive(
+          rspack_cache::__private::rkyv::Archive,
+          rspack_cache::__private::rkyv::Deserialize,
+          rspack_cache::__private::rkyv::Serialize
+      )]
       #[archive(check_bytes, crate="rspack_cache::__private::rkyv")]
       #input
 
@@ -20,7 +24,7 @@ pub fn impl_cacheable(_args: TokenStream, tokens: TokenStream) -> TokenStream {
           fn serialize(&self) -> Vec<u8> {
               rspack_cache::__private::rkyv::to_bytes::<_, 1024>(self).expect("serialize #ident failed").to_vec()
           }
-          fn deserialize(bytes: &[u8]) -> Self {
+          fn deserialize(bytes: &[u8]) -> Self where Self: Sized {
               rspack_cache::__private::rkyv::from_bytes::<Self>(bytes).expect("deserialize #ident failed")
           }
       }

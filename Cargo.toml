@@ -22,6 +22,7 @@ heck               = { version = "0.5.0" }
 hex                = { version = "0.4.3" }
 indexmap           = { version = "2.2.6" }
 indoc              = { version = "2.0.5" }
+inventory          = { version = "0.3" }
 itertools          = { version = "0.12.1" }
 json               = { version = "0.12.4" }
 linked_hash_set    = { version = "0.1.4" }
@@ -59,7 +60,7 @@ napi-derive       = { version = "2" }
 tikv-jemallocator = { version = "=0.5.4", features = ["disable_initial_exec_tls"] }
 
 # Must be pinned with the same swc versions
-rkyv                = { version = "=0.7.44" }                           # synced with swc wasm plugin
+rkyv                = { version = "=0.7.44" }                            # synced with swc wasm plugin
 swc_config          = { version = "=0.1.14" }
 swc_core            = { version = "0.95.7", default-features = false }
 swc_ecma_minifier   = { version = "=0.197.0", default-features = false }

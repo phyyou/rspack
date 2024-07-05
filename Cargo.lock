@@ -1628,6 +1628,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "inventory"
+version = "0.3.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f958d3d68f4167080a18141e10381e7634563984a537f2a49a30fd8e53ac5767"
+
+[[package]]
 name = "is-macro"
 version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3110,6 +3116,8 @@ dependencies = [
 name = "rspack_cache"
 version = "0.1.0"
 dependencies = [
+ "inventory",
+ "once_cell",
  "rkyv",
  "rspack_macros",
 ]

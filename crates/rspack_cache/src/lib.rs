@@ -1,14 +1,24 @@
-pub use rspack_macros::cacheable;
+pub use rspack_macros::{cacheable, cacheable_dyn};
 
 #[doc(hidden)]
 pub mod __private {
   #[doc(hidden)]
+  pub extern crate inventory;
+  #[doc(hidden)]
+  pub extern crate once_cell;
+  #[doc(hidden)]
   pub extern crate rkyv;
+}
+
+pub trait CacheableDyn {
+  fn type_name(&self) -> String;
 }
 
 pub trait Cacheable {
   fn serialize(&self) -> Vec<u8>;
-  fn deserialize(bytes: &[u8]) -> Self;
+  fn deserialize(bytes: &[u8]) -> Self
+  where
+    Self: Sized;
 }
 
 pub fn to_bytes<T: Cacheable>(data: &T) -> Vec<u8> {
