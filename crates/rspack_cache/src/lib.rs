@@ -1,5 +1,7 @@
 pub use rspack_macros::{cacheable, cacheable_dyn};
 
+pub mod with;
+
 #[doc(hidden)]
 pub mod __private {
   #[doc(hidden)]
