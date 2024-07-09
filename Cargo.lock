@@ -3113,7 +3113,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "rspack_cache"
+name = "rspack_cacheable"
 version = "0.1.0"
 dependencies = [
  "inventory",
@@ -3150,7 +3150,7 @@ dependencies = [
  "rayon",
  "regex",
  "rspack_ast",
- "rspack_cache",
+ "rspack_cacheable",
  "rspack_database",
  "rspack_error",
  "rspack_fs",

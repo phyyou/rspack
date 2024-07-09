@@ -1,5 +1,4 @@
-pub use rspack_macros::{cacheable, cacheable_dyn};
-
+pub use rspack_macros::{cacheable, cacheable_dyn, cacheable_with};
 pub mod with;
 
 #[doc(hidden)]
@@ -23,10 +22,12 @@ pub trait Cacheable {
     Self: Sized;
 }
 
+#[inline]
 pub fn to_bytes<T: Cacheable>(data: &T) -> Vec<u8> {
   data.serialize()
 }
 
+#[inline]
 pub fn from_bytes<T: Cacheable>(bytes: &[u8]) -> T {
   T::deserialize(bytes)
 }

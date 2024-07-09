@@ -20,18 +20,18 @@ fn impl_trait(mut input: ItemTrait) -> TokenStream {
 
   input
     .supertraits
-    .push(parse_quote!(rspack_cache::Cacheable));
+    .push(parse_quote!(rspack_cacheable::Cacheable));
   input
     .supertraits
-    .push(parse_quote!(rspack_cache::CacheableDyn));
+    .push(parse_quote!(rspack_cacheable::CacheableDyn));
 
   quote! {
       #input
 
       #[allow(non_upper_case_globals)]
       const _: () = {
-          use rspack_cache::__private::inventory;
-          use rspack_cache::__private::once_cell;
+          use rspack_cacheable::__private::inventory;
+          use rspack_cacheable::__private::once_cell;
           type DeserializeFn = fn(&[u8]) -> Box<dyn #trait_ident>;
 
           #flag_vis struct #flag_ident {
@@ -64,16 +64,16 @@ fn impl_trait(mut input: ItemTrait) -> TokenStream {
               map
           });
 
-          #[rspack_cache::cacheable]
+          #[rspack_cacheable::cacheable]
           struct #data_ident(String, Vec<u8>);
-          impl rspack_cache::Cacheable for Box<dyn #trait_ident> {
+          impl rspack_cacheable::Cacheable for Box<dyn #trait_ident> {
               fn serialize(&self) -> Vec<u8> {
                   let inner = self.as_ref();
                   let data = #data_ident(inner.type_name(), inner.serialize());
-                  rspack_cache::to_bytes(&data)
+                  rspack_cacheable::to_bytes(&data)
               }
-              fn deserialize(bytes: &[u8]) -> Self {
-                  let #data_ident(name, data) = rspack_cache::from_bytes::<#data_ident>(bytes);
+              fn deserialize(bytes: &[u8]) -> Self where Self: Sized {
+                  let #data_ident(name, data) = rspack_cacheable::from_bytes::<#data_ident>(bytes);
                   let deserialize_fn = REGISTRY.get(name.as_str()).expect("unsupport data type when deserialize");
                   deserialize_fn(&data)
               }
@@ -105,14 +105,14 @@ fn impl_impl(input: ItemImpl) -> TokenStream {
 
       #[allow(non_upper_case_globals)]
       const _: () = {
-          use rspack_cache::__private::inventory;
+          use rspack_cacheable::__private::inventory;
           inventory::submit! {
               <dyn #trait_ident>::cacheable_flag(#target_ident_string, |bytes: &[u8]| {
-                  Box::new(rspack_cache::from_bytes::<#target_ident>(bytes))
+                  Box::new(rspack_cacheable::from_bytes::<#target_ident>(bytes))
               })
           }
 
-          impl rspack_cache::CacheableDyn for #target_ident {
+          impl rspack_cacheable::CacheableDyn for #target_ident {
               fn type_name(&self) -> String {
                   String::from(#target_ident_string)
               }

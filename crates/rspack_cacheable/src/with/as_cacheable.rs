@@ -1,4 +1,4 @@
-use super::{from_bytes, to_bytes, Cacheable};
+use crate::Cacheable;
 
 pub struct AsCacheable;
 
@@ -14,7 +14,7 @@ where
 {
   #[inline]
   fn serialize_with(field: &T, serializer: &mut S) -> Result<Self::Resolver, S::Error> {
-    let bytes = &to_bytes(field);
+    let bytes = &field.serialize();
     Ok(AsCacheableResolver {
       inner: rkyv::vec::ArchivedVec::serialize_from_slice(bytes, serializer)?,
       len: bytes.len(),
@@ -42,11 +42,11 @@ where
 
 impl<T, D> rkyv::with::DeserializeWith<rkyv::vec::ArchivedVec<u8>, T, D> for AsCacheable
 where
-  T: Sized + Cacheable,
+  T: Cacheable,
   D: ?Sized + rkyv::Fallible,
 {
   #[inline]
   fn deserialize_with(field: &rkyv::vec::ArchivedVec<u8>, _: &mut D) -> Result<T, D::Error> {
-    Ok(from_bytes::<T>(field))
+    Ok(Cacheable::deserialize(field))
   }
 }

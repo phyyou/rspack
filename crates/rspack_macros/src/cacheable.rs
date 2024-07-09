@@ -30,19 +30,21 @@ pub fn impl_cacheable(_args: TokenStream, tokens: TokenStream) -> TokenStream {
 
   quote! {
       #[derive(
-          rspack_cache::__private::rkyv::Archive,
-          rspack_cache::__private::rkyv::Deserialize,
-          rspack_cache::__private::rkyv::Serialize
+          rspack_cacheable::__private::rkyv::Archive,
+          rspack_cacheable::__private::rkyv::Deserialize,
+          rspack_cacheable::__private::rkyv::Serialize
       )]
-      #[archive(check_bytes, crate="rspack_cache::__private::rkyv")]
+      #[archive(check_bytes, crate="rspack_cacheable::__private::rkyv")]
       #input
 
-      impl rspack_cache::Cacheable for #ident {
+      impl rspack_cacheable::Cacheable for #ident {
+          #[inline]
           fn serialize(&self) -> Vec<u8> {
-              rspack_cache::__private::rkyv::to_bytes::<_, 1024>(self).expect("serialize #ident failed").to_vec()
+              rspack_cacheable::__private::rkyv::to_bytes::<_, 1024>(self).expect("serialize #ident failed").to_vec()
           }
+          #[inline]
           fn deserialize(bytes: &[u8]) -> Self where Self: Sized {
-              rspack_cache::__private::rkyv::from_bytes::<Self>(bytes).expect("deserialize #ident failed")
+              rspack_cacheable::__private::rkyv::from_bytes::<Self>(bytes).expect("deserialize #ident failed")
           }
       }
   }
@@ -67,7 +69,7 @@ fn add_attr_for_field(field: &mut syn::Field) {
   // for Box<dyn xxx>
   if is_box_dyn {
     field.attrs.push(parse_quote! {
-        #[with(rspack_cache::with::AsCacheable)]
+        #[with(rspack_cacheable::with::AsCacheable)]
     });
   }
 }
