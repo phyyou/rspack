@@ -1,4 +1,4 @@
-pub use rspack_macros::{cacheable, cacheable_dyn, cacheable_with};
+pub use rspack_macros::{cacheable, cacheable_dyn};
 pub mod with;
 
 #[doc(hidden)]
