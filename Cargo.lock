@@ -3117,9 +3117,11 @@ name = "rspack_cacheable"
 version = "0.1.0"
 dependencies = [
  "inventory",
+ "json",
  "once_cell",
  "rkyv",
  "rspack_macros",
+ "rustc-hash",
 ]
 
 [[package]]

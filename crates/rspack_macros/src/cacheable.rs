@@ -132,24 +132,46 @@ fn get_ident(input: &Item) -> &syn::Ident {
 }
 
 fn add_attr_for_field(field: &mut syn::Field) {
-  let mut is_box_dyn = false;
   if let syn::Type::Path(ty_path) = &field.ty {
     if let Some(seg) = &ty_path.path.segments.first() {
       // check Box<dyn xxx>
       if seg.ident == "Box" {
         if let syn::PathArguments::AngleBracketed(arg) = &seg.arguments {
           if let Some(syn::GenericArgument::Type(syn::Type::TraitObject(_))) = &arg.args.first() {
-            is_box_dyn = true;
+            field.attrs.push(syn::parse_quote! {
+                #[with(rspack_cacheable::with::AsCacheable)]
+            });
+            return;
+          }
+        }
+      }
+
+      // check Option<JsonValue>
+      if seg.ident == "Option" {
+        if let syn::PathArguments::AngleBracketed(arg) = &seg.arguments {
+          if let Some(syn::GenericArgument::Type(syn::Type::Path(sub_path))) = &arg.args.first() {
+            if sub_path.path.is_ident("JsonValue") {
+              field.attrs.push(syn::parse_quote! {
+              #[with(rspack_cacheable::with::AsOption<rspack_cacheable::with::AsString>)]
+                            });
+              return;
+            }
+          }
+        }
+      }
+
+      if seg.ident == "HashSet" {
+        if let syn::PathArguments::AngleBracketed(arg) = &seg.arguments {
+          if let Some(syn::GenericArgument::Type(syn::Type::Path(sub_path))) = &arg.args.first() {
+            if sub_path.path.is_ident("PathBuf") {
+              field.attrs.push(syn::parse_quote! {
+                  #[with(rspack_cacheable::with::AsVec<rspack_cacheable::with::AsString>)]
+              });
+              return;
+            }
           }
         }
       }
     }
-  }
-
-  // for Box<dyn xxx>
-  if is_box_dyn {
-    field.attrs.push(syn::parse_quote! {
-        #[with(rspack_cacheable::with::AsCacheable)]
-    });
   }
 }

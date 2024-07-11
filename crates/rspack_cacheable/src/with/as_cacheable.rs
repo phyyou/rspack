@@ -1,32 +1,24 @@
+use rkyv::{
+  ser::{ScratchSpace, Serializer},
+  vec::{ArchivedVec, VecResolver},
+  with::{ArchiveWith, DeserializeWith, SerializeWith},
+  Fallible,
+};
+
 use crate::Cacheable;
 
 pub struct AsCacheable;
 
 pub struct AsCacheableResolver {
-  inner: rkyv::vec::VecResolver,
+  inner: VecResolver,
   len: usize,
 }
 
-impl<T, S> rkyv::with::SerializeWith<T, S> for AsCacheable
-where
-  T: Cacheable,
-  S: ?Sized + rkyv::ser::Serializer + rkyv::ser::ScratchSpace,
-{
-  #[inline]
-  fn serialize_with(field: &T, serializer: &mut S) -> Result<Self::Resolver, S::Error> {
-    let bytes = &field.serialize();
-    Ok(AsCacheableResolver {
-      inner: rkyv::vec::ArchivedVec::serialize_from_slice(bytes, serializer)?,
-      len: bytes.len(),
-    })
-  }
-}
-
-impl<T> rkyv::with::ArchiveWith<T> for AsCacheable
+impl<T> ArchiveWith<T> for AsCacheable
 where
   T: Cacheable,
 {
-  type Archived = rkyv::Archived<Vec<u8>>;
+  type Archived = ArchivedVec<u8>;
   type Resolver = AsCacheableResolver;
 
   #[inline]
@@ -36,17 +28,32 @@ where
     resolver: Self::Resolver,
     out: *mut Self::Archived,
   ) {
-    rkyv::vec::ArchivedVec::resolve_from_len(resolver.len, pos, resolver.inner, out)
+    ArchivedVec::resolve_from_len(resolver.len, pos, resolver.inner, out)
   }
 }
 
-impl<T, D> rkyv::with::DeserializeWith<rkyv::vec::ArchivedVec<u8>, T, D> for AsCacheable
+impl<T, S> SerializeWith<T, S> for AsCacheable
 where
   T: Cacheable,
-  D: ?Sized + rkyv::Fallible,
+  S: ?Sized + Serializer + ScratchSpace,
 {
   #[inline]
-  fn deserialize_with(field: &rkyv::vec::ArchivedVec<u8>, _: &mut D) -> Result<T, D::Error> {
+  fn serialize_with(field: &T, serializer: &mut S) -> Result<Self::Resolver, S::Error> {
+    let bytes = &field.serialize();
+    Ok(AsCacheableResolver {
+      inner: ArchivedVec::serialize_from_slice(bytes, serializer)?,
+      len: bytes.len(),
+    })
+  }
+}
+
+impl<T, D> DeserializeWith<ArchivedVec<u8>, T, D> for AsCacheable
+where
+  T: Cacheable,
+  D: ?Sized + Fallible,
+{
+  #[inline]
+  fn deserialize_with(field: &ArchivedVec<u8>, _: &mut D) -> Result<T, D::Error> {
     Ok(Cacheable::deserialize(field))
   }
 }
