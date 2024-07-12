@@ -14,7 +14,6 @@ pub fn impl_cacheable_dyn(_args: TokenStream, tokens: TokenStream) -> TokenStrea
 
 fn impl_trait(mut input: ItemTrait) -> TokenStream {
   let trait_ident = &input.ident;
-  let data_ident = Ident::new(&format!("{trait_ident}Data"), trait_ident.span());
   let flag_ident = Ident::new(&format!("{trait_ident}Flag"), trait_ident.span());
   let flag_vis = &input.vis;
 
@@ -23,7 +22,7 @@ fn impl_trait(mut input: ItemTrait) -> TokenStream {
     .push(parse_quote!(rspack_cacheable::Cacheable));
   input
     .supertraits
-    .push(parse_quote!(rspack_cacheable::CacheableDyn));
+    .push(parse_quote!(rspack_cacheable::r#dyn::CacheableDyn));
 
   quote! {
       #input
@@ -32,6 +31,7 @@ fn impl_trait(mut input: ItemTrait) -> TokenStream {
       const _: () = {
           use rspack_cacheable::__private::inventory;
           use rspack_cacheable::__private::once_cell;
+          use rspack_cacheable::r#dyn::CacheableDynData;
           type DeserializeFn = fn(&[u8]) -> Box<dyn #trait_ident>;
 
           #flag_vis struct #flag_ident {
@@ -64,16 +64,14 @@ fn impl_trait(mut input: ItemTrait) -> TokenStream {
               map
           });
 
-          #[rspack_cacheable::cacheable]
-          struct #data_ident(String, Vec<u8>);
           impl rspack_cacheable::Cacheable for Box<dyn #trait_ident> {
               fn serialize(&self) -> Vec<u8> {
                   let inner = self.as_ref();
-                  let data = #data_ident(inner.type_name(), inner.serialize());
+                  let data = CacheableDynData(inner.type_name(), inner.serialize());
                   rspack_cacheable::to_bytes(&data)
               }
               fn deserialize(bytes: &[u8]) -> Self where Self: Sized {
-                  let #data_ident(name, data) = rspack_cacheable::from_bytes::<#data_ident>(bytes);
+                  let CacheableDynData(name, data) = rspack_cacheable::from_bytes::<CacheableDynData>(bytes);
                   let deserialize_fn = REGISTRY.get(name.as_str()).expect("unsupport data type when deserialize");
                   deserialize_fn(&data)
               }
@@ -112,7 +110,7 @@ fn impl_impl(input: ItemImpl) -> TokenStream {
               })
           }
 
-          impl rspack_cacheable::CacheableDyn for #target_ident {
+          impl rspack_cacheable::r#dyn::CacheableDyn for #target_ident {
               fn type_name(&self) -> String {
                   String::from(#target_ident_string)
               }

@@ -3121,7 +3121,9 @@ dependencies = [
  "once_cell",
  "rkyv",
  "rspack_macros",
+ "rspack_sources",
  "rustc-hash",
+ "swc_core",
 ]
 
 [[package]]
@@ -3240,6 +3242,7 @@ version = "0.1.0"
 dependencies = [
  "data-encoding",
  "md4",
+ "rspack_cacheable",
  "smol_str",
  "xxhash-rust",
 ]
@@ -3260,6 +3263,7 @@ name = "rspack_identifier"
 version = "0.1.0"
 dependencies = [
  "hashlink",
+ "rspack_cacheable",
  "serde",
  "ustr-fxhash",
 ]
@@ -3307,6 +3311,7 @@ dependencies = [
  "derivative",
  "once_cell",
  "regex",
+ "rspack_cacheable",
  "rspack_error",
  "rspack_identifier",
  "rspack_sources",

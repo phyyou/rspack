@@ -88,3 +88,16 @@ impl AsStringConverter for json::JsonValue {
     json::parse(s).expect("parse json failed")
   }
 }
+
+// for swc_core atom
+impl AsStringConverter for swc_core::ecma::atoms::Atom {
+  fn to_string(&self) -> String {
+    self.as_str().to_string()
+  }
+  fn from_str(s: &str) -> Self
+  where
+    Self: Sized,
+  {
+    Self::from(s)
+  }
+}

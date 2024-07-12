@@ -1,4 +1,5 @@
 pub use rspack_macros::{cacheable, cacheable_dyn};
+pub mod r#dyn;
 pub mod with;
 
 #[doc(hidden)]
@@ -9,10 +10,6 @@ pub mod __private {
   pub extern crate once_cell;
   #[doc(hidden)]
   pub extern crate rkyv;
-}
-
-pub trait CacheableDyn {
-  fn type_name(&self) -> String;
 }
 
 pub trait Cacheable {
